@@ -10,8 +10,6 @@ Antes de começar, verifique se você tem:
 - [ ] **Servidor Ubuntu 22.04 LTS ou mais recente** (físico ou virtual)
 - [ ] **Acesso root ou sudo**
 - [ ] **Conectividade com a internet**
-- [ ] **Portas liberadas:** 80, 443, 8000, 10051, 161/UDP
-- [ ] **Recursos mínimos:** 6GB RAM, 4 CPU cores, 150GB disco
 
 ### 🖥️ Especificações Recomendadas
 
@@ -23,6 +21,7 @@ A instalação dos dois sistemas deve ocorrer em máquinas diferentes, sejam má
 - **RAM:** 8GB+
 - **Disco:** 100GB+ SSD
 - **Rede:** 1Gbps+ (redundante)
+  - **Portas:** 80, 443, 8000, 10051, 161/UDP
 
 #### Para o netbox
 #### **Ambiente de Produção**
@@ -30,6 +29,7 @@ A instalação dos dois sistemas deve ocorrer em máquinas diferentes, sejam má
 - **RAM:** 4GB+
 - **Disco:** 50GB+ SSD
 - **Rede:** 1Gbps+ (redundante)
+  - **Portas:** 80, 443
 ## 2.2 Instalação do Sistema Base
 
 ### 🐧 Preparação do Ubuntu Server

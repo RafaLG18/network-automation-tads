@@ -13,6 +13,7 @@ Este manual abrange a instalação, e configuração das ferramentas para automa
 3. **Desenvolvedores**: Foque nas seções de Scripts e Configuração
 4. **Troubleshooting**: Use a seção 07 para resolução rápida de problemas
 
+Siga sequencialmente o tutorial abaixo.
 - [`docs/01-visao-geral/`](docs/01-visao-geral/) - Visão geral da solução e requisitos
 - [`docs/02-instalacao/`](docs/02-instalacao/) - Instalação e configuração inicial
 - [`scripts/`](scripts/) - Códigos e scripts completos

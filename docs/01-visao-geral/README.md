@@ -1,6 +1,6 @@
-# 2. Visão Geral da Solução
+# 1. Visão Geral da Solução
 
-## 2.1 Descrição geral
+## 1.1 Descrição geral
 
 Este manual técnico apresenta uma solução completa de automação e monitoramento de redes para ambientes universitários, utilizando **Zabbix**, **Netbox** e **Python**.
 
@@ -77,11 +77,11 @@ Este manual técnico apresenta uma solução completa de automação e monitoram
 
 ### Hardware Mínimo:
 - **Servidor Zabbix:** 4 CPU cores, 8GB RAM, 100GB SSD
-- **Servidor Netbox:** 2 CPU cores, 4GB RAM, 50GB SSD
+- **Servidor Netbox:** 1.CPU cores, 4GB RAM, 50GB SSD
 - **Rede:** Acesso SNMP aos equipamentos
 
 ### Software:
-- Ubuntu Server 22.04 LTS
+- Ubuntu Server 1..04 LTS
 - Docker e Docker Compose
 - Python 3.11+
 - Git

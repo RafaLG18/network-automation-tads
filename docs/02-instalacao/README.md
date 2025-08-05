@@ -33,52 +33,11 @@ A instalação dos dois sistemas deve ocorrer em máquinas diferentes, sejam má
 ## 2.2 Instalação do Sistema Base
 
 ### 🐧 Preparação do Ubuntu Server
-
-```bash
-# 1. Atualizar sistema
-sudo apt update && sudo apt upgrade -y
-
-# 2. Instalar pacotes essenciais
-sudo apt install -y curl wget git vim htop net-tools \
-    software-properties-common apt-transport-https ca-certificates \
-    gnupg lsb-release python3-pip
-
-# 2. Configurar timezone
-sudo timedatectl set-timezone America/Recife
-
-# 4. Verificar status
-systemctl status
-```
+- [`Script de preparação ubuntu`](docs/scripts/02-instalacao/preparacao_ubuntu_server.sh)
 
 ### 🐳 Instalação do Docker
 
-```bash
-# 1. Remover versões antigas (se houver)
-sudo apt remove docker docker-engine docker.io containerd runc
-
-# 2. Adicionar repositório oficial Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# 2. Instalar Docker
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-# 4. Instalar Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# 5. Adicionar usuário ao grupo docker
-sudo usermod -aG docker $USER
-
-# 6. Verificar instalação
-docker --version
-docker-compose --version
-
-# 7. Reiniciar para aplicar permissões
-sudo reboot
-```
+- [`Script de instalação docker`](docs/scripts/02-instalacao/instalacao_docker.sh)
 
 ## 2.3 Instalação do Zabbix
 
@@ -88,90 +47,13 @@ Crie o arquivo de configuração:
 
 ```bash
 # 1. Criar diretório do projeto
-mkdir -p ~/network-automation/{zabbix,netbox,scripts}
+mkdir -p ~/network-automation/zabbix
 cd ~/network-automation/zabbix
 ```
 
 Crie o arquivo `docker-compose.yml`:
 
-```yaml
-version: '3.8'
-
-services:
-  # PostgreSQL para Zabbix
-  zabbix-postgres:
-    image: postgres:15
-    container_name: zabbix-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: zabbix_password_forte
-      POSTGRES_DB: zabbix
-    volumes:
-      - zabbix-postgres-data:/var/lib/postgresql/data
-    networks:
-      - zabbix-net
-
-  # Zabbix Server
-  zabbix-server:
-    image: zabbix/zabbix-server-pgsql:alpine-6.4-latest
-    container_name: zabbix-server
-    restart: unless-stopped
-    environment:
-      DB_SERVER_HOST: zabbix-postgres
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: zabbix_password_forte
-      POSTGRES_DB: zabbix
-      ZBX_ENABLE_SNMP_TRAPS: "true"
-    ports:
-      - "10051:10051"
-    volumes:
-      - zabbix-server-data:/var/lib/zabbix
-    depends_on:
-      - zabbix-postgres
-    networks:
-      - zabbix-net
-
-  # Zabbix Web Interface
-  zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql:alpine-6.4-latest
-    container_name: zabbix-web
-    restart: unless-stopped
-    environment:
-      ZBX_SERVER_HOST: zabbix-server
-      DB_SERVER_HOST: zabbix-postgres
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: zabbix_password_forte
-      POSTGRES_DB: zabbix
-      PHP_TZ: America/Sao_Paulo
-    ports:
-      - "80:8080"
-    depends_on:
-      - zabbix-server
-    networks:
-      - zabbix-net
-
-  # Zabbix Agent (para monitorar o próprio servidor)
-  zabbix-agent:
-    image: zabbix/zabbix-agent:alpine-6.4-latest
-    container_name: zabbix-agent
-    restart: unless-stopped
-    environment:
-      ZBX_HOSTNAME: "Zabbix Server"
-      ZBX_SERVER_HOST: zabbix-server
-    ports:
-      - "10050:10050"
-    networks:
-      - zabbix-net
-
-volumes:
-  zabbix-postgres-data:
-  zabbix-server-data:
-
-networks:
-  zabbix-net:
-    driver: bridge
-```
+- [`docker-compose zabbix`](docs/scripts/02-instalacao/zabbix-docker-compose.yaml)
 
 ### 🚀 Inicialização do Zabbix
 
@@ -211,60 +93,11 @@ git clone https://github.com/netbox-community/netbox-docker.git .
 
 Edite o arquivo `docker-compose.override.yml`:
 
-```yaml
-version: '3.4'
-services:
-  netbox:
-    ports:
-      - "8000:8080"
-    environment:
-      CORS_ORIGIN_ALLOW_ALL: 'True'
-
-  netbox-worker:
-    environment:
-      CORS_ORIGIN_ALLOW_ALL: 'True'
-```
+- [`docker-compose netbox`](docs/scripts/02-instalacao/docker-compose.override.yml)
 
 Crie o arquivo de configuração `.env`:
 
-```bash
-# Copiar exemplo e editar
-cp env.example .env
-
-# Editar configurações principais
-cat > .env << EOF
-COMPOSE_PROJECT_NAME=netbox
-COMPOSE_HTTP_TIMEOUT=300
-
-DB_NAME=netbox
-DB_USER=netbox
-DB_PASSWORD=netbox_password_forte
-DB_HOST=postgres
-DB_PORT=5432
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=redis_password_forte
-REDIS_DATABASE=0
-REDIS_CACHE_DATABASE=1
-
-SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
-
-EMAIL_SERVER=localhost
-EMAIL_PORT=25
-EMAIL_USERNAME=
-EMAIL_PASSWORD=
-EMAIL_TIMEOUT=5
-EMAIL_FROM=netbox@localhost
-
-MEDIA_ROOT=/opt/netbox/netbox/media
-
-SUPERUSER_NAME=admin
-SUPERUSER_EMAIL=admin@localhost
-SUPERUSER_PASSWORD=admin_password_forte
-SUPERUSER_API_TOKEN=sua_api_token_forte_aqui
-EOF
-```
+- [`configuracao .env`](docs/scripts/02-instalacao/configuracao-env.sh)
 
 ### 🚀 Inicialização do Netbox
 
